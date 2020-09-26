@@ -7,7 +7,7 @@ def sigmoid(x):
 
 
 class IncentivizedMAB:
-    def __init__(self, trials, mab_alg_name, mean_arm_reward, coeff):
+    def __init__(self, trials, mab_alg_name, mean_arm_reward, drift_func):
         self.trials = trials
         self.mab_alg_name = mab_alg_name
         self.cumulative_reward = dict()
@@ -18,7 +18,7 @@ class IncentivizedMAB:
         self.avg_compensation = dict()
         self.avg_regret = dict()
         self.frequency = dict()
-        self.coeff = coeff
+        self.drift_func = drift_func
         self.optimal_arm = None
 
         max_reward = -1
@@ -99,7 +99,7 @@ class IncentivizedMAB:
         return self.avg_reward[player_arm] - self.avg_reward[principal_arm]
 
     def get_drift(self, compensation):
-        return self.coeff * compensation
+        return self.drift_func(compensation)
 
     def get_reward(self, principal_arm):
         return np.random.normal(self.mean_arm_reward[principal_arm], 1)

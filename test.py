@@ -16,9 +16,41 @@ arm_rewards = {
 
 TRIALS = 20000
 
-ucb = incentivized_mab.IncentivizedMAB(trials=TRIALS, mab_alg_name='UCB', mean_arm_reward=arm_rewards, coeff=1)
-e_greedy = incentivized_mab.IncentivizedMAB(trials=TRIALS, mab_alg_name='e-greedy', mean_arm_reward=arm_rewards, coeff=1)
-thompson = incentivized_mab.IncentivizedMAB(trials=TRIALS, mab_alg_name='thompson-sampling', mean_arm_reward=arm_rewards, coeff=1)
+
+def log(x):
+    return np.log(1 + x)
+
+
+def sqrt(x):
+    return np.sqrt(x)
+
+
+def linear(x):
+    return x
+
+
+def abs(x):
+    return np.abs(x)
+
+
+def quadratic(x):
+    return x ** 2
+
+
+ucb = incentivized_mab.IncentivizedMAB(trials=TRIALS,
+                                       mab_alg_name='UCB',
+                                       mean_arm_reward=arm_rewards,
+                                       drift_func=linear)
+
+e_greedy = incentivized_mab.IncentivizedMAB(trials=TRIALS,
+                                            mab_alg_name='e-greedy',
+                                            mean_arm_reward=arm_rewards,
+                                            drift_func=linear)
+
+thompson = incentivized_mab.IncentivizedMAB(trials=TRIALS,
+                                            mab_alg_name='thompson-sampling',
+                                            mean_arm_reward=arm_rewards,
+                                            drift_func=linear)
 
 ucb.run()
 e_greedy.run()
@@ -42,13 +74,8 @@ plt.plot([i for i in range(1, TRIALS + 1)], y5, 'r', linestyle='-.', label='Thom
 y6 = [thompson.cumulative_compensation[t] for t in range(1, TRIALS + 1)]
 plt.plot([i for i in range(1, TRIALS + 1)], y6, 'b', linestyle='-.', label='Thompson Compensation')
 
-plt.title('Trend of Regret and Compensation')
+plt.title('Trend of Regret and Compensation (Drift Func: Linear)')
 plt.xlabel('Turns')
 plt.ylabel('Regret and Compensation')
 plt.legend(loc='upper left')
-plt.savefig('plot.png')
-
-
-
-
-
+plt.savefig('plot-linear.png')
