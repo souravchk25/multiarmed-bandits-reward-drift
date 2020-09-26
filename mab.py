@@ -29,3 +29,17 @@ def epsilon_greedy(avg_rewards, trial):
                 max_reward = reward
                 best_arm = arm
         return best_arm
+
+
+def thompson_sampling(avg_rewards, frequency):
+    theta = dict()
+    for arm, reward in avg_rewards.items():
+        # print ("arm: {}, freq: {}, denom: {}".format(arm, frequency[arm], (1.0 / (frequency[arm] + 1))))
+        theta[arm] = np.random.normal(loc=reward, scale=np.sqrt((1.0 / (frequency[arm] + 1))))
+    best_arm, max_reward = -1, theta[1]
+    for arm in theta.keys():
+        if theta[arm] >= max_reward:
+            max_reward = theta[arm]
+            best_arm = arm
+    return best_arm
+

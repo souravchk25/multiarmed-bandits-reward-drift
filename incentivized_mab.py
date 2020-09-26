@@ -60,6 +60,8 @@ class IncentivizedMAB:
                            frequency=self.frequency)
         elif self.mab_alg_name == 'e-greedy':
             return mab.epsilon_greedy(avg_rewards=self.avg_reward, trial=t)
+        elif self.mab_alg_name == 'thompson-sampling':
+            return mab.thompson_sampling(avg_rewards=self.avg_reward, frequency=self.frequency)
 
     def get_player_arm(self):
         max_reward, best_arm = -1, 0
@@ -97,12 +99,7 @@ class IncentivizedMAB:
         return self.avg_reward[player_arm] - self.avg_reward[principal_arm]
 
     def get_drift(self, compensation):
-        """
-        :param compensation:
-        :return: Coeff * compensation
-        Currently just a linear function. Need to experiment.
-        """
-        return self.coeff * np.log(compensation + 1)
+        return self.coeff * compensation
 
     def get_reward(self, principal_arm):
         return np.random.normal(self.mean_arm_reward[principal_arm], 1)
