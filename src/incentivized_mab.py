@@ -1,5 +1,6 @@
 import numpy as np
 import mab
+import constants
 
 
 def sigmoid(x):
@@ -34,6 +35,15 @@ class IncentivizedMAB:
         self.cumulative_compensation[0] = 0
         self.cumulative_regret[0] = 0
 
+        if self.mab_alg_name == constants.MULTI_WGT_ALG:
+            self.multi_wgt_alg = mab.MultiWeightAlg(num_arms=len(self.mean_arm_reward))
+
+        if self.mab_alg_name == constants.PURSUIT_ALG:
+            self.pursuit_alg = mab.PursuitAlg(num_arms=len(self.mean_arm_reward))
+
+        if self.mab_alg_name == constants.REINFORCEMENT_COMPARISON:
+            self.reinforcement_comparison = mab.ReinforcementComparison(num_arms=len(self.mean_arm_reward))
+
     def run(self):
         for t in range(1, self.trials + 1):
             principal_arm = self.get_principal_arm(t)
@@ -45,7 +55,13 @@ class IncentivizedMAB:
                 drift = self.get_drift(compensation)
                 reward += drift
 
-            if self.mab_alg_name == 'e-greedy':
+            if self.mab_alg_name == constants.MULTI_WGT_ALG:
+                self.multi_wgt_alg.update_weights(arm=principal_arm, reward=reward)
+
+            if self.mab_alg_name == constants.REINFORCEMENT_COMPARISON:
+                self.reinforcement_comparison.update_pi(arm=principal_arm, reward=reward)
+
+            if self.mab_alg_name == constants.E_GREEDY:
                 reward = sigmoid(reward)
 
             self.update_frequency(principal_arm)
@@ -53,15 +69,26 @@ class IncentivizedMAB:
             self.update_regret(t, reward)
             self.update_compensation(compensation, t)
 
+            if self.mab_alg_name == constants.PURSUIT_ALG:
+                self.pursuit_alg.update_prob_dist(avg_rewards=self.avg_reward)
+
     def get_principal_arm(self, t):
-        if self.mab_alg_name == 'UCB':
+        if self.mab_alg_name == constants.UCB:
             return mab.ucb(avg_rewards=self.avg_reward,
                            trial=t,
                            frequency=self.frequency)
-        elif self.mab_alg_name == 'e-greedy':
+        elif self.mab_alg_name == constants.E_GREEDY:
             return mab.epsilon_greedy(avg_rewards=self.avg_reward, trial=t)
-        elif self.mab_alg_name == 'thompson-sampling':
+        elif self.mab_alg_name == constants.THOMPSON_SAMPLING:
             return mab.thompson_sampling(avg_rewards=self.avg_reward, frequency=self.frequency)
+        elif self.mab_alg_name == constants.MULTI_WGT_ALG:
+            return self.multi_wgt_alg.get_arm()
+        elif self.mab_alg_name == constants.BOLTZMANN_SAMPLING:
+            return mab.boltzmann_sampling(avg_rewards=self.avg_reward, turn=t)
+        elif self.mab_alg_name == constants.PURSUIT_ALG:
+            return self.pursuit_alg.get_arm()
+        elif self.mab_alg_name == constants.REINFORCEMENT_COMPARISON:
+            return self.reinforcement_comparison.get_arm()
 
     def get_player_arm(self):
         max_reward, best_arm = -1, 0
